@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\DependencyInjection;
 
+use Symfony\Component\DependencyInjection\Environment;
 use Symfony\Component\ExpressionLanguage\ExpressionFunction;
 use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
 
@@ -19,6 +20,7 @@ use Symfony\Component\ExpressionLanguage\ExpressionFunctionProviderInterface;
  *
  * To get a service, use service('request').
  * To get a parameter, use parameter('kernel.debug').
+ * To get an environment variable, use env('UID').
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
@@ -37,6 +39,20 @@ class ExpressionLanguageProvider implements ExpressionFunctionProviderInterface
                 return sprintf('$this->getParameter(%s)', $arg);
             }, function (array $variables, $value) {
                 return $variables['container']->getParameter($value);
+            }),
+
+            new ExpressionFunction('env', function ($arg, $default = null) {
+                if (2 > func_num_args()) {
+                    return sprintf('Symfony\\Component\\DependencyInjection\\Environment::getVariable(%s)', $arg);
+                }
+
+                return sprintf('Symfony\\Component\\DependencyInjection\\Environment::getVariable(%s, %s)', $arg, $default);
+            }, function (array $variables, $value, $default = null) {
+                if (3 > func_num_args()) {
+                    return Environment::getVariable($value);
+                }
+
+                return Environment::getVariable($value, $default);
             }),
         );
     }
